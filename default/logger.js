@@ -44,9 +44,10 @@ const levelColors = {
 const timeColor = chalk.gray;
 const msgColor = chalk.bold;
 
-// longest level name is 7 chars "verbose" and "warning".
-const PAD_LEVEL = 7;
-const padLevel = level => level.padStart(PAD_LEVEL, " ");
+// longest level name is 7 chars "verbose"
+// but "metric" can't really be shortened...
+const PAD_LEVEL = 6;
+const padLevel = level => (level === "verbose" ? "verb": level).padStart(PAD_LEVEL, " ");
 
 // colorful keys in meta.
 const coloredMeta = (color, meta) =>
@@ -123,7 +124,8 @@ const textFormatter = function({ level, message = "", meta = {} } = {}) {
     message = message.padEnd(MESSAGE_MIN_LENGTH, " ");
 
     if (file.length) {
-        file = " " + coloredMeta(color, { "~pos": file });
+        // reduce to 2 path segments... 
+        file = " " + coloredMeta(color, { "~pos": file }); //.split("/").slice(-2).join("/") });
     }
     const cm = coloredMeta(color, meta);
     const time = timeColor(logTimestamp());
@@ -178,8 +180,7 @@ function tryAndGetLocation(level, msg, meta = {}) {
             /(\/index\.js|\.js):(\d+)$/,
             (_, __, n) => ":" + pad3(n)
         );
-        // now just take the final 2 bits.
-        meta[fileKey] = file.split("/").slice(-2).join("/");
+        meta[fileKey] = file;
     }
     return meta;
 }

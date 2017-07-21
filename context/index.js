@@ -15,34 +15,22 @@ function log(id, level, ...args) {
     console.log(`[${id}][${level}]`, ...args);
 }
 
-const baseDefinition = {
-    done: {
-        enumerable: true,
-        configurable: false,
-        writable: false,
-        value: async function() {
+const basePrototype = {
+   async done(){
             if (this[$done]) {
                 throw new Error("called ctx.done() more than once!");
             }
             this[$done] = true;
             await Promise.all(this[$cleanup].map(f => f()));
-        }
-    },
-    isDone: {
-        enumerable: true,
-        configurable: false,
-        get: function() {
+        },
+    isDone() {
             return this[$done];
-        }
     },
-    child: {
-        enumerable: true,
-        configurable: false,
-        writable: false,
-        value: function() {
+    child() {
             return createChildContext(this);
-        }
-    },
+    }
+};
+const baseDescriptors = {
     id: {
         enumerable: true,
         configurable: false,
@@ -68,7 +56,7 @@ const baseDefinition = {
 // NB the context itself has a `null` prototype
 const createContext = ({prototype, descriptors}, parent = null) => {
     const ctx = Object.create(prototype, descriptors);
-    ctx[$definition] = props;
+    ctx[$definition] = {prototype, descriptors};
     ctx[$cleanup] = [];
     if (parent) {
         ctx[$parent] = parent;
@@ -111,7 +99,7 @@ const createPropertyDescriptors = (properties = {}) => {
             cleanup = false,
             onConstruction = false
         } = properties[key];
-        if (typeof child !== "function" || !proto) {
+        if (typeof child !== "function" && !proto) {
             throw new Error(
                 "Context property definition must have a `child` key which is a function, or a value in the `proto` key"
             );
@@ -122,7 +110,7 @@ const createPropertyDescriptors = (properties = {}) => {
         if (proto) {
             //this should be on the prototype.
             // SIDE EFFECT!
-            protoype[key] = proto;
+            prototype[key] = proto;
             return defs;
         }
 
@@ -181,12 +169,14 @@ const createPropertyDescriptors = (properties = {}) => {
 // it is usually a good idea to wrap this in your application as a singleton.
 // so only one background context can be created.
 exports.createBackgroundContext = props => {
-    const { prototype, descriptors } = createPropertyDescriptors(props);
-    Object.assign(
+    const def = createPropertyDescriptors(props);
+    const descriptors = Object.assign(
         {},
-        baseDefinition,
-        descriptors
+        baseDescriptors,
+        def.descriptors
     );
+    //not here basePrototype is king
+    const prototype = Object.assign({}, def.prototype, basePrototype);
     return createContext({prototype, descriptors});
 };
 
