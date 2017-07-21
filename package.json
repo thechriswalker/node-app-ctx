@@ -1,6 +1,6 @@
 {
   "name": "app-ctx",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "An application execution context to pass around, attach stuff to, make child contexts/request specific contexts",
   "main": "index.js",
   "scripts": {
