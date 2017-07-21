@@ -7,12 +7,12 @@ const $done = Symbol("done");
 // but the "id" property is assumed in other properties
 const nextId = () => {
     nextId.id = "id" in nextId ? nextId.id + 1 : 0;
-    return "<id:" + nextId.id + ">";
+    return "<ctx:" + nextId.id + ">";
 };
 
 // simple logger
 function log(id, level, ...args) {
- log(`[${id}][${level}]`, ...args);
+    console.log(`[${id}][${level}]`, ...args);
 }
 
 
@@ -56,13 +56,13 @@ const baseDefinition = {
         }
     },
     log: {
-      enumerable: true,
-      configurable: false,
-      get: function() {
-        const l = (...args) => log(this.id, "debug", ...args);
-        l.log = (...args) => log(this.id, ...args);
-        return l;
-      }
+        enumerable: true,
+        configurable: false,
+        get: function() {
+            const l = (...args) => log(this.id, "debug", ...args);
+            l.log = (...args) => log(this.id, ...args);
+            return l;
+        }
     }
 };
 

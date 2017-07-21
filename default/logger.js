@@ -10,6 +10,17 @@ const LOG_JSON = process.env.LOG_JSON === "true";
 const LOG_FILE_POSITION = process.env.LOG_FILE_POSITION === "true";
 const LOG_TIME_SHORT = process.env.LOG_TIME_SHORT === "true";
 
+// @see https://github.com/google/closure-library/blob/252d8f515799b689dd99ee8c4a1601074d985297/closure/goog/string/string.js#L1148
+const regexEscape = function(s) {
+    return String(s)
+        .replace(/([-()\[\]{}+?*.$\^|,:#<!\\])/g, "\\$1")
+        .replace(/\x08/g, "\\x08");
+};
+
+// base them on the current position.
+// maybe track back to `package.json`?
+const logPosRegex = new RegExp(regexEscape(process.cwd() + "/"));
+
 const logLevels = {
     metric: -1, // metrics can be logged and are always output.
     error: 0,
@@ -32,7 +43,6 @@ const levelColors = {
 };
 const timeColor = chalk.gray;
 const msgColor = chalk.bold;
-const fileColor = chalk.gray; // was yellow, but off putting. better the only color is the level color
 
 // longest level name is 7 chars "verbose" and "warning".
 const PAD_LEVEL = 7;
@@ -74,9 +84,6 @@ const jsonFormatter = function({ level, message = "", meta = {} } = {}) {
 
 const identity = x => x;
 
-// this is the offset (minus fixed width items) to the meta
-const META_OFFSET = 50; // you want a wide terminal!
-
 const logTimestamp = () => {
     const d = new Date().toISOString();
     if (LOG_TIME_SHORT) {
@@ -100,6 +107,9 @@ const logTimestamp = () => {
 // so we use something unlikely
 const fileKey = "__log_file_location_and_position";
 
+// how much we pad a message to by default
+const MESSAGE_MIN_LENGTH = 50; // you want a wide terminal!
+
 //pretty text.
 const textFormatter = function({ level, message = "", meta = {} } = {}) {
     const color = level in levelColors ? levelColors[level] : identity;
@@ -110,16 +120,15 @@ const textFormatter = function({ level, message = "", meta = {} } = {}) {
     }
 
     // cannot use String.prototype.pad(Start|End) here, we just want the padding
-    const pad = " ".repeat(
-        Math.max(0, META_OFFSET - (file.length + message.length))
-    );
+    message = message.padEnd(MESSAGE_MIN_LENGTH, " ");
+
     if (file.length) {
-        file = file.split(":").map(s => fileColor(s)).join(":") + " ";
+        file = " " + coloredMeta(color, { "~pos": file });
     }
     const cm = coloredMeta(color, meta);
     const time = timeColor(logTimestamp());
     const msg = msgColor(message);
-    return `${time} ${color(padLevel(level))} ${file}${msg}${pad} ${cm}`;
+    return `${time} ${color(padLevel(level))} ${msg} ${cm}${file}`;
 };
 // We make a custom transport, what can be used with each logger.
 // Then add it as a container - we need to remember to clean up the containers though
@@ -157,18 +166,12 @@ function tryAndGetLocation(level, msg, meta = {}) {
             frames.splice(0, p); //remove `p` entries
         }
         // we have a chance.
-        let file = frames[1].split(/(node_modules|src|bin)\//);
+        let file = frames[1].split(logPosRegex);
         if (file.length === 1) {
-            //not from inside the src/bin folder.
-            console.log(frames);
+            //not from inside this folder? ignore
             return meta;
         } else {
-            const f = file.pop().replace(/:\d+\)?$/, "");
-            const p = file.pop();
-            // if node_modules, leave it off, otherwise add it back on.
-            // node_modules would actually need to be context-aware, but
-            // that might be the case...
-            file = (p === "node_modules" ? "" : p + "/") + f;
+            file = file.pop().replace(/:\d+\)?$/, "");
         }
         // now also we have, e.g. http/vi/index.js:12 or http/v1/routes.js:12
         file = file.replace(
@@ -176,13 +179,8 @@ function tryAndGetLocation(level, msg, meta = {}) {
             (_, __, n) => ":" + pad3(n)
         );
         // now just take the final 2 bits.
-        file = file.split("/").slice(-2).join("/");
-        meta[fileKey] = " ".repeat(Math.max(0, 22 - file.length)) + file;
-    } else {
-        // crap.
-        console.log(stack);
+        meta[fileKey] = file.split("/").slice(-2).join("/");
     }
-
     return meta;
 }
 

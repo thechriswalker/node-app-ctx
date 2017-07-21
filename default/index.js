@@ -63,7 +63,7 @@ const baseProps = {
     }
 };
 
-const { createBackgroundContext, staticProp } = require("./index");
+const { createBackgroundContext, staticProp } = require("../");
 exports.createBackgroundContext = moreDefs => {
     return createBackgroundContext(Object.assign({}, baseProps, moreDefs));
 };
