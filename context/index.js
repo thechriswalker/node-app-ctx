@@ -15,8 +15,6 @@ function log(id, level, ...args) {
     console.log(`[${id}][${level}]`, ...args);
 }
 
-
-
 const baseDefinition = {
     done: {
         enumerable: true,
@@ -68,15 +66,15 @@ const baseDefinition = {
 
 // This creates a context and assigns it all the correct properties
 // NB the context itself has a `null` prototype
-const createContext = (props, parent = null) => {
-    const ctx = Object.create(null, props);
+const createContext = ({prototype, descriptors}, parent = null) => {
+    const ctx = Object.create(prototype, descriptors);
     ctx[$definition] = props;
     ctx[$cleanup] = [];
     if (parent) {
         ctx[$parent] = parent;
     }
-    Object.keys(props).forEach(k => {
-        if (props[k].onConstruction) {
+    Object.keys(descriptors).forEach(k => {
+        if (descriptors[k].onConstruction) {
             // just "get" to trigger it.
             ctx[k];
         }
@@ -104,23 +102,36 @@ const createPropertyDescriptors = (properties = {}) => {
     const propKeys = Object.getOwnPropertyNames(properties).concat(
         Object.getOwnPropertySymbols(properties)
     );
-    return propKeys.reduce((defs, key) => {
+    const prototype = {};
+    const descriptors = propKeys.reduce((defs, key) => {
         const {
             child,
+            proto,
             initial,
             cleanup = false,
             onConstruction = false
         } = properties[key];
-        if (typeof child !== "function") {
+        if (typeof child !== "function" || !proto) {
             throw new Error(
-                "Context property definition must have a `child` key which is a function."
+                "Context property definition must have a `child` key which is a function, or a value in the `proto` key"
             );
         }
+        if (proto && (child || cleanup)) {
+            throw new Error("If `proto` is set then neither `child`, nor `cleanup` are allowed");
+        }
+        if (proto) {
+            //this should be on the prototype.
+            // SIDE EFFECT!
+            protoype[key] = proto;
+            return defs;
+        }
+
         if (cleanup && typeof cleanup !== "function") {
             throw new Error(
                 "Context property definition key `cleanup` key must be a function."
             );
         }
+
         const definition = {
             enumerable: true,
             configurable: false,
@@ -163,21 +174,23 @@ const createPropertyDescriptors = (properties = {}) => {
         defs[key] = definition;
         return defs;
     }, {});
+
+    return { prototype, descriptors };
 };
 
 // it is usually a good idea to wrap this in your application as a singleton.
 // so only one background context can be created.
 exports.createBackgroundContext = props => {
-    const definition = Object.assign(
+    const { prototype, descriptors } = createPropertyDescriptors(props);
+    Object.assign(
         {},
         baseDefinition,
-        createPropertyDescriptors(props)
+        descriptors
     );
-    return createContext(definition);
+    return createContext({prototype, descriptors});
 };
 
 // small helper wrapper that allows static properties (the same for all contexts)
 // to be created less verbosely
-exports.staticProp = thing => {
-    return { child: () => thing };
-};
+exports.staticProp = thing => ({ child: () => thing });
+exports.protoProp = thing => ({ proto: thing });

@@ -63,9 +63,10 @@ const baseProps = {
     }
 };
 
-const { createBackgroundContext, staticProp } = require("../");
+const normalExports = require("../");
+// everything the regular package exports.
+Object.assign(exports, normalExports);
+// but override this.
 exports.createBackgroundContext = moreDefs => {
-    return createBackgroundContext(Object.assign({}, baseProps, moreDefs));
+    return normalExports.createBackgroundContext(Object.assign({}, baseProps, moreDefs));
 };
-// we re-export this to make life easier for everyone.
-exports.staticProp = staticProp;
