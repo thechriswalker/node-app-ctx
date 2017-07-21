@@ -1,6 +1,6 @@
 {
   "name": "app-ctx",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "An application execution context to pass around, attach stuff to, make child contexts/request specific contexts",
   "main": "src/index.js",
   "scripts": {
@@ -16,5 +16,7 @@
     "cuid": "^1.3.8",
     "winston": "^2.3.1"
   },
-  "engines": { "node": ">=8.0.0" }
+  "engines": {
+    "node": ">=8.0.0"
+  }
 }
