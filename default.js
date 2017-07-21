@@ -47,6 +47,7 @@ const lifetime = () => {
     return () => hr2ms(process.hrtime(start));
 };
 
+// here are the `default` added props.
 const baseProps = {
     id: {
         initial: "background",
@@ -62,7 +63,9 @@ const baseProps = {
     }
 };
 
-const { createBackgroundContext } = require("./index");
+const { createBackgroundContext, staticProp } = require("./index");
 exports.createBackgroundContext = moreDefs => {
     return createBackgroundContext(Object.assign({}, baseProps, moreDefs));
 };
+// we re-export this to make life easier for everyone.
+exports.staticProp = staticProp;

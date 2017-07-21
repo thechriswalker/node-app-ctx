@@ -10,6 +10,13 @@ const nextId = () => {
     return "<id:" + nextId.id + ">";
 };
 
+function log(...args) {
+  console.log(...args);
+}
+// helper to make it more winston compatible.
+log.log = log;
+
+
 const baseDefinition = {
     done: {
         enumerable: true,
@@ -47,6 +54,11 @@ const baseDefinition = {
             }
             return this._id;
         }
+    },
+    log: {
+      enumerable: true,
+      configurable: false,
+      value: log
     }
 };
 
@@ -84,7 +96,11 @@ const checkForUseAfterCleanup = (thing, key) => {
 };
 
 const createPropertyDescriptors = (properties = {}) => {
-    return Object.keys(properties).reduce((defs, key) => {
+    // we want symbols as well as keys!
+    const propKeys = Object.getOwnPropertyNames(properties).concat(
+        Object.getOwnPropertySymbols(properties)
+    );
+    return propKeys.reduce((defs, key) => {
         const {
             child,
             initial,
