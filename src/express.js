@@ -1,7 +1,7 @@
 // An express middleware for context's
 exports.middleware = (
     baseContext,
-    { send = defaultSend, logTiming = true, exposeId = true } = {}
+    { send = defaultSend, logTiming = defaultLogTiming, exposeId = true } = {}
 ) => (req, res, next) => {
     req.withContext = async fn => {
         let hijacked = false;
@@ -18,11 +18,9 @@ exports.middleware = (
             if (logTiming) {
                 const timing = childContext.lifetime().toFixed(3);
                 res.set("x-request-time", timing + "ms");
-                childContext.log.metric("request.time", {
-                    method: req.method,
-                    uri: req.originalUrl,
-                    ms: timing
-                });
+                if (typeof logTiming === "function") {
+                    logTiming(ctx, timing, req, res);
+                }
             }
             if (exposeId) {
                 res.set("x-request-id", childContext.id);
@@ -56,4 +54,16 @@ exports.middleware = (
 // or wraps a Response object of your own devising
 function defaultSend(req, res, result) {
     res.send(result);
+}
+
+// default is to log as a metric. this assume a "log" property on
+// your context with a "log" function on it, ie. it is a "winston" logger... like the app-ctx/default
+function defaultLogTiming(ctx, timing, req, res) {
+    if (ctx.log && typeof ctx.log.log === "function") {
+        ctx.log.log("metric", "request.timer", {
+            method: req.method,
+            uri: req.originalUrl,
+            ms: timing
+        });
+    }
 }
