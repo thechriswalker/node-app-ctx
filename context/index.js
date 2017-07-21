@@ -10,11 +10,11 @@ const nextId = () => {
     return "<id:" + nextId.id + ">";
 };
 
-function log(...args) {
-  console.log(...args);
+// simple logger
+function log(id, level, ...args) {
+ log(`[${id}][${level}]`, ...args);
 }
-// helper to make it more winston compatible.
-log.log = log;
+
 
 
 const baseDefinition = {
@@ -58,7 +58,11 @@ const baseDefinition = {
     log: {
       enumerable: true,
       configurable: false,
-      value: log
+      get: function() {
+        const l = (...args) => log(this.id, "debug", ...args);
+        l.log = (...args) => log(this.id, ...args);
+        return l;
+      }
     }
 };
 

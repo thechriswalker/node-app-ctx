@@ -48,3 +48,7 @@ a database, to ensure all handles are closed after the context is done.
 
 That is now 99% of all use-cases I have had for this.
 
+## demo
+
+[![demo](https://asciinema.org/a/BvWPhJd0ILk4zus1C7vzRG38M.png)](https://asciinema.org/a/BvWPhJd0ILk4zus1C7vzRG38M?autoplay=1)
+
