@@ -10,6 +10,9 @@ const LOG_JSON = process.env.LOG_JSON === "true";
 const LOG_FILE_POSITION = process.env.LOG_FILE_POSITION === "true";
 const LOG_TIME_SHORT = process.env.LOG_TIME_SHORT === "true";
 
+//where in the meta to put this key (never conflicts but unique is better
+const filiePositionKey = "loc";
+
 // @see https://github.com/google/closure-library/blob/252d8f515799b689dd99ee8c4a1601074d985297/closure/goog/string/string.js#L1148
 const regexEscape = function(s) {
     return String(s)
@@ -69,8 +72,8 @@ const coloredMeta = (color, meta) =>
 const jsonFormatter = function({ level, message = "", meta = {} } = {}) {
     const fields = { level };
     Object.keys(meta).forEach(key => {
-        if (key === fileKey) {
-            fields.file = meta[key].trim();
+        if (key === fileTempKey) {
+            fields[filePositionKey] = meta[key].trim();
         } else {
             fields["meta." + key] = meta[key];
         }
@@ -106,7 +109,7 @@ const logTimestamp = () => {
 
 // we can't use symbols, winston strips them... :(
 // so we use something unlikely
-const fileKey = "__log_file_location_and_position";
+const fileTempKey = "__log_file_location_and_position";
 
 // how much we pad a message to by default
 const MESSAGE_MIN_LENGTH = 50; // you want a wide terminal!
@@ -115,17 +118,15 @@ const MESSAGE_MIN_LENGTH = 50; // you want a wide terminal!
 const textFormatter = function({ level, message = "", meta = {} } = {}) {
     const color = level in levelColors ? levelColors[level] : identity;
     let file = "";
-    if (meta.hasOwnProperty(fileKey)) {
-        file = meta[fileKey];
-        delete meta[fileKey];
+    if (meta.hasOwnProperty(fileTempKey)) {
+        file = meta[fileTempKey];
+        delete meta[fileTempKey];
     }
 
-    // cannot use String.prototype.pad(Start|End) here, we just want the padding
     message = message.padEnd(MESSAGE_MIN_LENGTH, " ");
 
     if (file.length) {
-        // reduce to 2 path segments... 
-        file = " " + coloredMeta(color, { "~pos": file }); //.split("/").slice(-2).join("/") });
+        file = " " + coloredMeta(color, { [filePositionKey]: file });
     }
     const cm = coloredMeta(color, meta);
     const time = timeColor(logTimestamp());
