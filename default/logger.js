@@ -11,7 +11,7 @@ const LOG_FILE_POSITION = process.env.LOG_FILE_POSITION === "true";
 const LOG_TIME_SHORT = process.env.LOG_TIME_SHORT === "true";
 
 //where in the meta to put this key (never conflicts but unique is better
-const filiePositionKey = "loc";
+const filePositionKey = "loc";
 
 // @see https://github.com/google/closure-library/blob/252d8f515799b689dd99ee8c4a1601074d985297/closure/goog/string/string.js#L1148
 const regexEscape = function(s) {
