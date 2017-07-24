@@ -181,7 +181,7 @@ function tryAndGetLocation(level, msg, meta = {}) {
             /(\/index\.js|\.js):(\d+)$/,
             (_, __, n) => ":" + pad3(n)
         );
-        meta[fileKey] = file;
+        meta[fileTempKey] = file;
     }
     return meta;
 }
