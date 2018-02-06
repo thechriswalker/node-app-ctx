@@ -1,0 +1,20 @@
+{
+  "name": "app-ctx",
+  "version": "0.2.0",
+  "description": "An application execution context to pass around, attach stuff to, make child contexts/request specific contexts",
+  "main": "index.js",
+  "scripts": {
+    "test": "tape test/*.js"
+  },
+  "keywords": [
+    "context"
+  ],
+  "author": "Chris Walker <chris@thechriswalker.net>",
+  "license": "ISC",
+  "engines": {
+    "node": ">=9.0.0"
+  },
+  "devDependencies": {
+    "tape": "^4.8.0"
+  }
+}

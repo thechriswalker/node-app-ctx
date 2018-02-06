@@ -1,0 +1,22 @@
+{
+  "name": "app-ctx-pino",
+  "version": "1.0.0",
+  "description": "Logging adapter for app-ctx",
+  "main": "index.js",
+  "repository": "https://github.com/thechriswalker/app-ctx",
+  "author": "Chris Walker <chris@thechriswalker.net>",
+  "license": "MIT",
+  "scripts": {
+    "test": "tape test/*.js"
+  },
+  "dependencies": {
+    "pino": "^4.10.4"
+  },
+  "peerDependencies": {
+    "app-ctx": "^0.0.11"
+  },
+  "devDependencies": {
+    "stream-buffers": "^3.0.1",
+    "tape": "^4.8.0"
+  }
+}

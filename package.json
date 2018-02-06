@@ -1,22 +1,4 @@
 {
-  "name": "app-ctx",
-  "version": "0.0.11",
-  "description": "An application execution context to pass around, attach stuff to, make child contexts/request specific contexts",
-  "main": "context/index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "keywords": [
-    "context"
-  ],
-  "author": "Chris Walker <chris@thechriswalker.net>",
-  "license": "ISC",
-  "optionalDependencies": {
-    "chalk": "^2.0.1",
-    "cuid": "^1.3.8",
-    "winston": "^2.3.1"
-  },
-  "engines": {
-    "node": ">=8.0.0"
-  }
+  "private": true,
+  "workspaces": ["packages/*"]
 }
